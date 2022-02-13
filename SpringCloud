@@ -1,0 +1,83 @@
+1. Spring Cloud Config
+集中配置管理工具，分布式系统中统一的外部配置管理，默认使用Git来存储配置，可以支持客户端配置的刷新及加密、解密操作。
+1. Spring Cloud Netflix
+Netflix OSS 开源组件集成，包括Eureka、Hystrix、Ribbon、Feign、Zuul等核心组件。
+● Eureka：服务治理组件，包括服务端的注册中心和客户端的服务发现机制；
+● Ribbon：负载均衡的服务调用组件，具有多种负载均衡调用策略；
+● Hystrix：服务容错组件，实现了断路器模式，为依赖服务的出错和延迟提供了容错能力；
+● Feign：基于Ribbon和Hystrix的声明式服务调用组件；
+● Zuul：API网关组件，对请求提供路由及过滤功能。
+1. Spring Cloud Bus
+用于传播集群状态变化的消息总线，使用轻量级消息代理链接分布式系统中的节点，可以用来动态刷新集群中的服务配置。
+1. Spring Cloud Consul
+基于Hashicorp Consul的服务治理组件。
+1. Spring Cloud Security
+安全工具包，对Zuul代理中的负载均衡OAuth2客户端及登录认证进行支持。
+1. Spring Cloud Sleuth
+Spring Cloud应用程序的分布式请求链路跟踪，支持使用Zipkin、HTrace和基于日志（例如ELK）的跟踪。
+1. Spring Cloud Stream
+轻量级事件驱动微服务框架，可以使用简单的声明式模型来发送及接收消息，主要实现为Apache Kafka及RabbitMQ。
+1. Spring Cloud Task
+用于快速构建短暂、有限数据处理任务的微服务框架，用于向应用中添加功能性和非功能性的特性。
+1. Spring Cloud Zookeeper
+基于Apache Zookeeper的服务治理组件。
+1. Spring Cloud Gateway
+API网关组件，对请求提供路由及过滤功能。
+1. Spring Cloud OpenFeign
+基于Ribbon和Hystrix的声明式服务调用组件，可以动态创建基于Spring MVC注解的接口实现用于服务调用，在Spring Cloud 2.0中已经取代Feign成为了一等公民。
+介绍下Spring Cloud Gateway？
+
+1. 是Spring Cloud GateWay 是Spring官方推出的第二代网关框架，取代Zuul网关
+2. 是spring官方基于Spring 5.0、Spring Boot2.0和Project Reactor等技术开发的网关
+3. 基于Filter链提供网关功能：路由、重试、认证、负载、限流、熔断等功能。
+4. 它重要的概念是路由（route）、断言（Predicate）、过滤器（Filter）
+5. 网关过滤器 （GatewayFilter ）有 20 多个 实现 类；网关过滤器工厂（GatewayFilterFactory）有22个实现类；
+6. 全局过滤器（GlobalFilter ）有11个实现类，全局过滤器是特殊的过滤器，会根据条件应用到所有路由中；
+
+Eureka和Zookeeper区别？
+1. 在分布式领域有一个很著名的CAP定理：C：数据一致性。A：服务可用性。P：分区容错性（服务对网络分区故障的容错性）。
+2. Zookeeper取CAP的CP注重一致性，在可用性方面不太好，假如master节点故障，剩余节点会重新leader选举，选举leader的时间太长30～120s，选举期间整个集群都不可用，这就导致在选举期间注册服务瘫痪，漫长选举导致注册不可用，不能容忍。
+3. Eureka看明白了这一点，因此在设计时就优先保证可用性。取CAP的AP，注重可用性。Eureka各个节点都是平等的，只要有一台Eureka还在就能保证注册服务可用（保证可用性），只不过可能查询到的不是最新的。
+4. eureka的自我保护机制，会导致一个结果就是不会再从注册列表移除因长时间没收到心跳而过期的服务。依然能接受新服务的注册和查询请求，但不会被同步到其他节点（保证当前节点可用），当网络稳定时，当前实例新的注册信息会被同步到其它节点中。也就是，不容易瘫痪。
+5. Zookeeper有Leader和Follower角色，Eureka各个节点平等。
+6. Zookeeper采用过半数存活原则，Eureka采用自我保护机制解决分区问题。
+7. eureka本质是一个工程，Zookeeper只是一个进程。
+8. dubbo默认使用zookeeper，spring cloud默认使用eureka。
+
+Eureka自我保护机制是什么?
+1. Eureka在运行期间会统计心跳失败的比例，在15分钟内是否低于85%,如果出现了低于的情况，Eureka Server会将当前的实例注册信息保护起来，同时提示一个警告，表明进入了保护模式
+2. 一旦进入保护模式，Eureka Server将会尝试保护其服务注册表中的信息，不再删除服务注册表中的数据。也就是不会注销任何微服务。
+3. 我们在开发测试阶段，需要频繁地重启发布，如果触发了保护机制，则旧的服务实例没有被删除，这时请求有可能跑到旧的实例中，而该实例已经关闭了，这就导致请求错误，影响开发测试。所以，在开发测试阶段，我们可以把自我保护模式关闭，只需在eureka server配置文件中加上如下配置即可：
+ eureka.server.enable-self-preservation=false
+1. 自我保护模式可以让集群更加健壮。故障恢复时，自动退出自我保护模式。
+2. 生产环境，不会频繁重启，所以，一定要把自我保护机制打开，否则网络一旦中断，就无法恢复。
+
+说一下springcloud里面hystrix ？
+问题回答
+1. Netflix开源了Hystrix组件，实现了断路器模式，SpringCloud对这一组件进行了整合。
+2. 主要功能分为4大板块隔离、限流、熔断、降级。我们常用的是请求熔断和服务降级。
+3. 涉及注解@EnableHystrix和@Hystrixcommand(fallbackMethod="xxx")
+4. Feign默认集成了Hystrix。RestTemplate、springCloud GateWay在时候的时候都会考虑集成Hystrix。
+5. 服务熔断，指的是服务故障，再让新的请求去访问根本没有意义，这个时候选择暂时断开请求。
+6. 服务熔断依靠hystrix的断路器，它有全开、半开、关闭3种状态。
+7. 服务降级，指断路打开后，为了避免连锁故障，使用 fallback 方法返回当前不可用的友好提示。
+8. 总而言之，hystrix它是为了解决，由于单个服务故障，导致其他依赖服务不可用的“雪崩”效应。比如有服务A，假设A1·A100都依赖了A，假如A出现了问题，那A1·A100这100个服务也跟着出现了问题
+
+spring cloud 和dubbo区别?
+
+1. Dubbo是来源于阿里团队，SpringCloud是来源于Spring团队
+2. Dubbo 是 SOA 时代的产物，它的关注点主要在于服务的调用，流量分发、流量监控和熔断。Spring Cloud 诞生于微服务架构时代，考虑的是微服务治理的方方面面。
+3. 两个框架在开始目标就不一致，Dubbo 定位服务治理、Spirng Cloud 是一个生态。
+4. Dubbo主要分为服务注册中心，服务提供者，服务消费者，还有管控中心；SpringCloud则是一个完整的分布式一站式框架，他有着一样的服务注册中心，服务提供者，服务消费者，管控台，断路器，分布式配置服务，消息总线，以及服务追踪等；
+5. Dubbo底层是使用Netty这样的NIO框架，是基于TCP协议传输的，配合以Hession序列化完成RPC通信。而SpringCloud是基于Http协议+rest接口调用远程过程的通信，Http请求会有更大的报文，占的带宽也会更多，REST相比RPC更为灵活。
+6. 注册中心,dubbo 是zookeeper，springcloud是eureka，也可以是zookeeper
+7. 服务网关,dubbo本身没有实现，只能通过其他第三方技术整合，springcloud有Gateway路由网关，作为路由服务器，进行消费者的请求分发,springcloud支持断路器，与git完美集成配置文件支持版本控制，总线实现配置文件的更新与服务自动装配等等一系列的微服务架构要素。
+8. 一些政府金融项目还用着dubbo；也有很多项目往springCloud项目转型；新开的项目优先就是用springCloud了。
+
+SpringBoot和SpringCloud的区别？
+
+1. SpringBoot专注于快速方便的开发单个个体微服务。
+2. SpringCloud是关注全局的微服务协调整理治理框架，它将SpringBoot开发的一个个单体微服务整合并管理起来，
+为各个微服务之间提供，配置管理、服务发现、断路器、路由、微代理、事件总线、全局锁、决策竞选、分布式会话等等集成服务
+3. SpringBoot可以离开SpringCloud独立使用开发项目， 但是SpringCloud离不开SpringBoot ，属于依赖的关系
+4. SpringBoot专注于快速、方便的开发单个微服务个体，SpringCloud关注全局的服务治理框架。
