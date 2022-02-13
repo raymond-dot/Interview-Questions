@@ -1,0 +1,182 @@
+一、Spring面试题
+1.什么是spring?为什么使用Spring ?
+Spring 是一款轻量级、非侵入式的框架，使程序代码对框架依赖最小化 ;   Spring框架的核心：IoC容器和AOP模块。
+优点 ： 
+1). 方便解耦，简化开发
+         通过Spring提供的IoC容器，可以将所有对象的创建和依赖关系的维护，交给Spring管理。 
+2).支持 AOP编程
+        Spring提供面向切面编程， 可以方便的实现对程序进行性能监测、事务管理、日志记录等。
+3). 支持声明式事务
+4). 方便集成各种优秀框架 （如：Struts、Hibernate、MyBatis等）。 
+5). 降低Java EE API的使用难度
+        Spring对JavaEE开发中非常难用的一些API（JDBC、JavaMail、远程调用等），都提供了封装，使这些API应用难度大大降低。 
+
+2.什么是IoC，为什使用IoC ?
+IoC (Inversion of Control)即控制反转，它把传统上由程序代码操控的对象的调用权交给spring容器，通过spring容器来实现对象组件的创建、装配和管理。  (由spring来负责控制对象的生命周期和对象间的关系 )
+IOC的好处就是解耦，对象和对象之间的耦合度变低了，便于测试、便于功能复用。 
+DI：依赖注入，在程序运行期间,由外部容器动态地将依赖对象注入到组件中。简单定义就是当一个对象需要另一个对象时，把另一个对象注入到对象中去。 
+Spring框架提供了两种不同类型的容器。
+1. BeanFactory容器
+2. ApplicationContext容器
+
+3.说一下spring的AOP?
+1. AOP，也就是面向切面编程；其次还有面向过程和面向对象编程。
+2. Spring AOP实现主要是通过代理类的方式实现，有jdk动态代理和CGLIB代理两种方式。
+3. Java动态代理只能够对接口进行代理，不能对普通的类进行代理（因为所有生成的代理类的父类为Proxy，Java类继承机制不允许多重继承）；CGLIB能够代理普通类；
+4. Spring内部，发现如果目标对象没有实现接口，则默认会采用CGLIB代理； 如果目标对象实现了接口，默认会采用Java动态代理；
+5. AOP用到的动态代理是对方法增强的方式之一。
+6. AOP的典型应用就是事务管理 。
+
+代理
+	#静态代理：编译时增强，修改目标对象的class文件
+  #AspectJ：它会在编译阶段将Aspect织入Java字节码中， 运行的时候就是经过增强之后的AOP对象。
+	#动态代理：运行时增强，生成代理对象
+  #jdk动态代理：利用反射机制生成一个实现代理接口的匿名类，在调用具体方法前调用InvokeHandler来处理。
+  	#被代理的对象必须要实现接口
+  	#创建一个实现InvocationHandler的代理类
+  	#使用Proxy.newProxyInstance(classLoader, interfaces, handler)产生代理对象
+  #cglib动态代理：利用asm（一个短小精悍的字节码操作框架）开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
+  	#必须依赖于CGLib的类库
+  	#可对无实现接口的类进行代理
+  	#Enhancer类为主要类
+
+Spring通知有哪些类型？
+在AOP术语中，切面的工作被称为通知，实际上是程序执行时要通过SpringAOP框架触发的代码段。
+Spring切面可以应用5种类型的通知：
+1. 前置通知（Before）：在目标方法被调用之前调用通知功能；
+2. 后置通知（After）：在目标方法完成之后调用通知，此时不会关心方法的输出是什么；
+3. 返回通知（After-returning ）：在目标方法成功执行之后调用通知；
+4. 异常通知（After-throwing）：在目标方法抛出异常后调用通知；
+5. 环绕通知（Around）：通知包裹了被通知的方法，在被通知的方法调用之前和调用之后执行自定义的行为。
+
+解释Spring支持的几种bean的作用域
+Spring框架支持以下五种bean的作用域：
+● singleton : bean在每个Spring ioc 容器中只有一个实例。
+● prototype：一个bean的定义可以有多个实例。
+● request：每次http请求都会创建一个bean，该作用域仅在基于web的Spring ApplicationContext情形下有效。
+● session：在一个HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的Spring ApplicationContext情形下有效。
+● global-session：在一个全局的HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的Spring ApplicationContext情形下有效。
+注意： 缺省的Spring bean 的作用域是Singleton。
+什么是bean装配？
+装配，或bean 装配是指在Spring 容器中把bean组装到一起，前提是容器需要知道bean的依赖关系，如何通过依赖注入来把它们装配到一起。
+什么是bean的自动装配？
+在Spring框架中，在配置文件中设定bean的依赖关系是一个很好的机制，Spring  容器能够自动装配相互合作的bean，这意味着容器不需要和配置，能通过Bean工厂自动处理bean之间的协作。这意味着  Spring可以通过向Bean  Factory中注入的方式自动搞定bean之间的依赖关系。自动装配可以设置在每个bean上，也可以设定在特定的bean上。
+解释不同方式的自动装配，spring 自动装配 bean 有哪些方式？
+在spring中，对象无需自己查找或创建与其关联的其他对象，由容器负责把需要相互协作的对象引用赋予各个对象，使用autowire来配置自动装载模式。
+在Spring框架xml配置中共有5种自动装配：
+● no：默认的方式是不进行自动装配的，通过手工设置ref属性来进行装配bean。
+● byName：通过bean的名称进行自动装配，如果一个bean的 property 与另一bean 的name 相同，就进行自动装配。
+● byType：通过参数的数据类型进行自动装配。
+● constructor：利用构造函数进行装配，并且构造函数的参数通过byType进行装配。
+● autodetect：自动探测，如果有构造方法，通过 construct的方式自动装配，否则使用 byType的方式自动装配。
+使用@Autowired注解自动装配的过程是怎样的？
+使用@Autowired注解来自动装配指定的bean。在使用@Autowired注解之前需要在Spring配置文件进行配置，<context:annotation-config />。
+在启动spring  IoC时，容器自动装载了一个AutowiredAnnotationBeanPostProcessor后置处理器，当容器扫描到@Autowied、@Resource或@Inject时，就会在IoC容器自动查找需要的bean，并装配给该对象的属性。在使用@Autowired时，首先在容器中查询对应类型的bean：
+● 如果查询结果刚好为一个，就将该bean装配给@Autowired指定的数据；
+● 如果查询的结果不止一个，那么@Autowired会根据名称来查找；
+● 如果上述查找的结果为空，那么会抛出异常。解决方法时，使用required=false。
+@Autowired和@Resource之间的区别
+@Autowired可用于：构造函数、成员变量、Setter方法
+@Autowired和@Resource之间的区别
+● @Autowired默认是按照类型装配注入的，默认情况下它要求依赖对象必须存在（可以设置它required属性为false）。
+● @Resource默认是按照名称来装配注入的，只有当找不到与名称匹配的bean才会按照类型来装配注入。
+Spring 框架中都用到了哪些设计模式？
+1. 工厂模式：BeanFactory就是简单工厂模式的体现，用来创建实例对象；
+2. 单例模式：Bean默认为单例模式。
+3. 代理模式：Spring AOP中的动态代理主要有两种方式，JDK动态代理和CGLIB动态代理。 
+4. 模板方法：用来解决代码重复的问题。比如. RestTemplate, JmsTemplate, JpaTemplate。
+5. 观察者模式：定义对象键一种一对多的依赖关系，当一个对象的状态发生改变时，所有依赖于它的对象都会得到通知被制动更新，如Spring中listener的实现–ApplicationListener。       
+3.Spring事务的实现方式和实现原理
+ Spring事务的本质其实就是数据库对事务的支持。真正的数据库层的事务提交和回滚是通过binlog或者redo log实现的。
+Spring支持两种类型的事务管理：
+有两种方式：
+1、编程式事务，在代码中硬编码。(不推荐使用)
+2、声明式事务，在配置文件中配置（推荐使用）
+声明式事务又分为两种：
+a、基于XML的声明式事务
+b、基于注解的声明式事务
+
+
+4.说一下Spring的事务传播行为
+某一个事务传播行为修饰的方法被嵌套进另一个方法的事务时如何传播。
+Spring中的7个事务传播行为:
+事务行为	说明
+PROPAGATION_REQUIRED	支持当前事务，假设当前没有事务。就新建一个事务
+PROPAGATION_SUPPORTS	支持当前事务，假设当前没有事务，就以非事务方式运行
+PROPAGATION_MANDATORY	支持当前事务，假设当前没有事务，就抛出异常
+PROPAGATION_REQUIRES_NEW	新建事务，假设当前存在事务。把当前事务挂起
+PROPAGATION_NOT_SUPPORTED	以非事务方式运行操作。假设当前存在事务，就把当前事务挂起
+PROPAGATION_NEVER	以非事务方式运行，假设当前存在事务，则抛出异常
+PROPAGATION_NESTED	如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与PROPAGATION_REQUIRED类似的操作。
+5.说一下 spring 的事务隔离？
+spring 有五大隔离级别，默认值为 ISOLATION_DEFAULT（使用数据库的设置），其他四个隔离级别和数据库的隔离级别一致：
+事务隔离级别介绍
+
+1. 未提交读(Read Uncommitted)：允许脏读，也就是可能读取到其他会话中未提交事务修改的数据
+2. 提交读(Read Committed)：只能读取到已经提交的数据。Oracle等多数数据库默认都是该级别 (不重复读)
+3. 可重复读(Repeated Read)：可重复读。在同一个事务内的查询都是事务开始时刻一致的，InnoDB默认级别。在SQL标准中，该隔离级别消除了不可重复读，但是还存在幻象读，但是innoDB解决了幻读
+4. 串行读(Serializable)：完全串行化的读，每次读都需要获得表级共享锁，读写相互都会阻塞
+
+● 脏读 ：表示一个事务能够读取另一个事务中还未提交的数据。
+● 不可重复读 ：在一个事务内，多次读同一数据,，读到的结果不一样。
+● 幻读 ：指同一个事务内多次查询返回的结果集不一样。
+Spring通知有哪些类型？
+Spring切面可以应用5种类型的通知：
+1. 前置通知（Before）：在目标方法被调用之前调用通知功能；
+2. 后置通知（After）：在目标方法完成之后调用通知，此时不会关心方法的输出是什么；
+3. 返回通知（After-returning ）：在目标方法成功执行之后调用通知；
+4. 异常通知（After-throwing）：在目标方法抛出异常后调用通知；
+5. 环绕通知（Around）：通知包裹了被通知的方法，在被通知的方法调用之前和调用之后执行自定义的行为。
+
+二、Spring MVC面试题
+1、SpringMVC工作原理/工作流程
+
+  1. 用户发送请求至前端控制器DispatcherServlet；
+  2. DispatcherServlet收到请求后，调用HandlerMapping处理器映射器，请求获取Handle；
+  3. 处理器映射器根据请求url找到具体的处理器，生成处理器对象及处理器拦截器(如果有则生成), 并返回给DispatcherServlet；
+  4. DispatcherServlet 调用 HandlerAdapter处理器适配器；
+  5. HandlerAdapter 经过适配调用 具体处理器(Handler，也叫后端控制器)；
+  6. Handler执行完成返回ModelAndView；
+  7. HandlerAdapter将Handler执行结果ModelAndView返回给DispatcherServlet；
+  8. DispatcherServlet将ModelAndView传给ViewResolver视图解析器进行解析；
+  9. ViewResolver解析后返回具体View；
+  10. DispatcherServlet对View进行渲染视图（即将模型数据填充至视图中）
+  11. DispatcherServlet响应用户。
+
+三、MyBatis面试题
+1、mybatis #{}和${}的区别？
+1.  #{}是占位符，经过预编译处理，相当于对数据加上单引号 ,可以有效的防止SQL注入；
+2. ${}是拼接符，字符串替换，没有经过预编译处理，有sql注入的风险。
+3. 两者都可以使用的时候优先用#{}，比如where``查询，like``查询选择用#{}。
+4. order by 列字段，from 表名称，只能用涉及到动态表名和列名时只能用${}。
+
+order by 之后
+默认情况下，使用＃{}格式的语法会导致MyBatis的创建的PreparedStatement参数并安全地设置参数（就像使用？一样）。这样做更安全，更迅速，通常也是首选做法，不过有时你就是想直接在SQL语句中插入一个不转义的字符串。比如，像ORDER BY，你可以这样来使用：ORDER BY $ {COLUMNNAME}。这里的MyBatis不会修改或者转义字符串。
+
+以上是官网中的说明，官网给出的解决方案是不允许用户输入这些字段或者执行转义并检验。显然不允许用户输入这些字段是不现实的，那么唯一的途径就是执行转义并检验了。
+这种场景应当在Java层面做映射，设置一个字段/表名数组，仅允许用户传入索引值。这样保证传入的字段或者表名都在白名单里面。需要注意的是在mybatis-generator自动生成的SQL语句中，order by使用的也是$，而like和in没有问题。
+
+2、防止SQL注入的方法？
+1. 预编译语句。在编写MyBatis的SQL语句时，尽量采用“#{xxx}”这样的格式。 #{}：相当于JDBC中的PreparedStatement，
+2.  使用存储过程。   存储过程（Stored Procedure）是一组完成特定功能的SQL语句集，经编译后存储在数据库中，用户通过调用存储过程并给定参数（如果该存储过程带有参数）就可以执行它，也可以避免SQL注入攻击；
+3.  对用户输入进行验证，使用正则表达式过滤传入的参数；
+
+3、模糊查询like语句该怎么写
+（1）’%${question}%’  可能引起SQL注入，不推荐
+（2）"%"#{question}"%"    注意：因为#{…}解析成sql语句时候，会在变量外侧自动加单引号’  '，所以这里 % 需要使用双引号"  "，不能使用单引号 ’  '，不然会查不到任何结果。
+（3）CONCAT(’%’,#{question},’%’)     使用CONCAT()函数，推荐
+
+四、Maven面试题
+1、什么是Maven？
+Maven是一个跨平台的项目管理工具，可以对java项目进行依赖管理。
+优点如下：
+1. 简化了项目依赖管理：
+2. 有助于多模块项目的开发，一个模块开发好后，发布到仓库，依赖该模块时可以直接从仓库更新，而不用自己去编译。
+2、怎样解决maven依赖冲突？
+使用maven提供的依赖调解原则：
+ 1. 第一声明者优先原则       哪个jar包在靠上的位置，这个jar包就是先声明的，先声明的jar包下的依赖包，可以优先引入项目中。
+ 2.路径近者优先原则
+    直接依赖比传递依赖路径近，你那么最终进入项目的jar包会是路径近的直接依赖包。
+    直接依赖：项目中直接导入的jar包就是项目的直接依赖包。
+   传递依赖（间接依赖）：项目中没有直接导入的jar包，可以通过中直接依赖包传递到项目中去。
+ 3.直接排除法     当我们需要排除某个jar包的依赖时，在配置exclusions标签的时候，内部可以不写版本号。pom.xml依赖如下：
