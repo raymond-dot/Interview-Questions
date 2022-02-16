@@ -6,7 +6,8 @@
 1.字符串常量池
       全局字符串池里的内容是在类加载完成，经过验证，准备阶段之后在堆中生成字符串对象实例，然后将该字符串对象实例的引用值存到string pool中（string pool中存的是引用值而不是具体的实例对象，
       具体的实例对象是在堆中开辟的一块空间存放的）。
-    在HotSpot VM里实现的string  pool功能的是一个StringTable类，它是一个Hash表，默认值大小长度是1009；这个StringTable在每个HotSpot  VM的实例只有一份，被所有的类共享。字符串常量由一个一个字符组成，放在了StringTable上。
+    在HotSpot VM里实现的string  pool功能的是一个StringTable类，它是一个Hash表，默认值大小长度是1009；这个StringTable在每个HotSpot  VM的实例只有一份，被所有的类共享。
+    字符串常量由一个一个字符组成，放在了StringTable上。
 ● 在JDK6.0及之前版本中，String Pool里放的都是字符串常量；
 ● 在JDK7.0中，由于String#intern()发生了改变，因此String Pool中也可以存放放于堆内的字符串对象的引用。
 这里字符串常量池里的字符串实际上是驻留字符串。
