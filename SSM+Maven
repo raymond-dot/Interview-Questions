@@ -12,7 +12,8 @@ Spring 是一款轻量级、非侵入式的框架，使程序代码对框架依�
         Spring对JavaEE开发中非常难用的一些API（JDBC、JavaMail、远程调用等），都提供了封装，使这些API应用难度大大降低。 
 
 2.什么是IoC，为什使用IoC ?
-IoC (Inversion of Control)即控制反转，它把传统上由程序代码操控的对象的调用权交给spring容器，通过spring容器来实现对象组件的创建、装配和管理。  (由spring来负责控制对象的生命周期和对象间的关系 )
+IoC (Inversion of Control)即控制反转，它把传统上由程序代码操控的对象的调用权交给spring容器，通过spring容器来实现对象组件的创建、装配和管理。 
+(由spring来负责控制对象的生命周期和对象间的关系 )
 IOC的好处就是解耦，对象和对象之间的耦合度变低了，便于测试、便于功能复用。 
 DI：依赖注入，在程序运行期间,由外部容器动态地将依赖对象注入到组件中。简单定义就是当一个对象需要另一个对象时，把另一个对象注入到对象中去。 
 Spring框架提供了两种不同类型的容器。
@@ -60,7 +61,8 @@ Spring框架支持以下五种bean的作用域：
 什么是bean装配？
 装配，或bean 装配是指在Spring 容器中把bean组装到一起，前提是容器需要知道bean的依赖关系，如何通过依赖注入来把它们装配到一起。
 什么是bean的自动装配？
-在Spring框架中，在配置文件中设定bean的依赖关系是一个很好的机制，Spring  容器能够自动装配相互合作的bean，这意味着容器不需要和配置，能通过Bean工厂自动处理bean之间的协作。这意味着  Spring可以通过向Bean  Factory中注入的方式自动搞定bean之间的依赖关系。自动装配可以设置在每个bean上，也可以设定在特定的bean上。
+在Spring框架中，在配置文件中设定bean的依赖关系是一个很好的机制，Spring  容器能够自动装配相互合作的bean，这意味着容器不需要和配置，能通过Bean工厂自动处理bean之间的协作。
+这意味着  Spring可以通过向Bean  Factory中注入的方式自动搞定bean之间的依赖关系。自动装配可以设置在每个bean上，也可以设定在特定的bean上。
 解释不同方式的自动装配，spring 自动装配 bean 有哪些方式？
 在spring中，对象无需自己查找或创建与其关联的其他对象，由容器负责把需要相互协作的对象引用赋予各个对象，使用autowire来配置自动装载模式。
 在Spring框架xml配置中共有5种自动装配：
@@ -71,7 +73,8 @@ Spring框架支持以下五种bean的作用域：
 ● autodetect：自动探测，如果有构造方法，通过 construct的方式自动装配，否则使用 byType的方式自动装配。
 使用@Autowired注解自动装配的过程是怎样的？
 使用@Autowired注解来自动装配指定的bean。在使用@Autowired注解之前需要在Spring配置文件进行配置，<context:annotation-config />。
-在启动spring  IoC时，容器自动装载了一个AutowiredAnnotationBeanPostProcessor后置处理器，当容器扫描到@Autowied、@Resource或@Inject时，就会在IoC容器自动查找需要的bean，并装配给该对象的属性。在使用@Autowired时，首先在容器中查询对应类型的bean：
+在启动spring  IoC时，容器自动装载了一个AutowiredAnnotationBeanPostProcessor后置处理器，当容器扫描到@Autowied、@Resource或@Inject时，
+就会在IoC容器自动查找需要的bean，并装配给该对象的属性。在使用@Autowired时，首先在容器中查询对应类型的bean：
 ● 如果查询结果刚好为一个，就将该bean装配给@Autowired指定的数据；
 ● 如果查询的结果不止一个，那么@Autowired会根据名称来查找；
 ● 如果上述查找的结果为空，那么会抛出异常。解决方法时，使用required=false。
