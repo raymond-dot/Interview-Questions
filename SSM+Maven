@@ -157,7 +157,16 @@ Spring中bean的生命周期？
 然后是继续对BeanPostProcessor 这个接口中的后置初始化方法进行一个调用postProcessAfterInitialization（）
 其实到这一步，基本上这个bean的初始化基本已经完成，就处于就绪状态
 然后就是当Spring容器中如果使用完毕的话，就会调用destory（）方法
-最后会去执行我们自己定义的销毁方法来进行销毁，然后结束生命周期
+最后会去执行我们自己定义的销毁方法来进行销毁，然后结束生命周期；
+
+详细整理Spring事务失效的具体场景及解决方案   https://mp.weixin.qq.com/s/9mAWaoFx7LgRbkmqr4fKDw
+注解@Transactional配置的方法非public权限修饰；
+注解@Transactional所在类非Spring容器管理的bean；
+注解@Transactional所在类中，注解修饰的方法被类内部方法调用； 自身调用问题
+业务代码抛出异常类型非RuntimeException，事务失效；
+业务代码中存在异常时，使用try…catch…语句块捕获，而catch语句块没有throw new RuntimeExecption异常;（最难被排查到问题且容易忽略）
+注解@Transactional中Propagation属性值设置错误即Propagation.NOT_SUPPORTED（一般不会设置此种传播机制）
+mysql关系型数据库，且存储引擎是MyISAM而非InnoDB，则事务会不起作用(基本开发中不会遇到)；
 
 
 二、Spring MVC面试题
