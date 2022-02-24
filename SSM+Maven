@@ -131,6 +131,35 @@ Spring切面可以应用5种类型的通知：
 4. 异常通知（After-throwing）：在目标方法抛出异常后调用通知；
 5. 环绕通知（Around）：通知包裹了被通知的方法，在被通知的方法调用之前和调用之后执行自定义的行为。
 
+Spring中bean的加载过程？
+首先从大的几个核心步骤来去说明，因为Spring中的具体加载过程和用到的类实在是太多了。
+（1）、首先是先从AbstractBeanFactory中去调用doGetBean（name, requiredType, final Object[] args, boolean typeCheckOnly【这个是判断进行创建bean还是仅仅用来做类型检查】）方法，
+然后第一步要做的就是先去对传入的参数name进行做转换，因为有可能传进来的name=“&XXX”之类，需要去除&符号
+（2）、然后接着是去调用getSingleton（）方法，其实在上一个面试题中已经提到了这个方法，这个方法就是利用“三级缓存” 来去避免循环依赖问题的出现的。
+【这里补充一下，只有在是单例的情况下才会去解决循环依赖问题】
+（3）、对从缓存中拿到的bean其实是最原始的bean，还未长大，所以这里还需要调用getObjectForBeanInstance（Object beanInstance, String name, String beanName, RootBeanDefinition mbd）
+方法去进行实例化。
+（4）、然后会解决单例情况下尝试去解决循环依赖，如果isPrototypeCurrentlyInCreation（beanName）返回为true的话，会继续下一步，否则throw new BeanCurrentlyInCreationException(beanName);
+（5）、因为第三步中缓存中如果没有数据的话，就直接去parentBeanFactory中去获取bean，然后判断containsBeanDefinition（beanName）中去检查已加载的XML文件中是否包含有这样的bean存在，
+不存在的话递归去getBean（）获取，如果没有继续下一步
+（6）、这一步是吧存储在XML配置文件中的GernericBeanDifinition转换为RootBeanDifinition对象。这里主要进行一个转换，如果父类的bean不为空的话，会一并合并父类的属性
+（7）、这一步核心就是需要跟这个Bean有关的所有依赖的bean都要被加载进来，通过刚刚的那个RootBeanDifinition对象去拿到所有的beanName,然后通过registerDependentBean（dependsOnBean, beanName）
+注册bean的依赖
+（8）、然后这一步就是会根据我们在定义bean的作用域的时候定义的作用域是什么，然后进行判断在进行不同的策略进行创建（比如isSingleton、isPrototype）
+（9）、这个是最后一步的类型装换，会去检查根据需要的类型是否符合bean的实际类型去做一个类型转换。Spring中提供了许多的类型转换器
+
+Spring中bean的生命周期？
+首先会先进行实例化bean对象
+然后是进行对bean的一个属性进行设置
+接着是对BeanNameAware（其实就是为了让Spring容器来获取bean的名称）、BeanFactoryAware（让bean的BeanFactory调用容器的服务）、ApplicationContextAware（让bean当前的applicationContext可以来取调用Spring容器的服务）
+然后是实现BeanPostProcessor 这个接口中的两个方法，主要是对调用接口的前置初始化postProcessBeforeInitialization
+这里是主要是对xml中自己定义的初始化方法 init-method = “xxxx”进行调用
+然后是继续对BeanPostProcessor 这个接口中的后置初始化方法进行一个调用postProcessAfterInitialization（）
+其实到这一步，基本上这个bean的初始化基本已经完成，就处于就绪状态
+然后就是当Spring容器中如果使用完毕的话，就会调用destory（）方法
+最后会去执行我们自己定义的销毁方法来进行销毁，然后结束生命周期
+
+
 二、Spring MVC面试题
 1、SpringMVC工作原理/工作流程
 
