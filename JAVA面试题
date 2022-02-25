@@ -123,6 +123,7 @@ handler的拒绝策略有四种：
              第二种DisCardPolicy:不执行新任务，也不抛出异常
              第三种DisCardOldSetPolicy:将消息队列中的第一个任务替换为当前新进来的任务执行
              第四种CallerRunsPolicy:直接调用execute来执行当前任务
+	     除了JDK默认提供的四种拒绝策略，我们可以根据自己的业务需求去自定义拒绝策略，自定义的方式很简单，直接实现RejectedExecutionHandler接口即可。
 	     
 四种常见的线程池：
 CachedThreadPool:可缓存的线程池，该线程池中没有核心线程，非核心线程的数量为Integer.max_value，就是无限大，当有需要时创建线程来执行任务，没有需要时回收线程，适用于耗时少，任务量大的情况。
@@ -140,6 +141,11 @@ FixedThreadPool:定长的线程池，有核心线程，核心线程的即为最�
 一个不存储元素的阻塞队列。每个插入操作必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态，吞吐量通常要高于LinkedBlockingQueue，静态工厂方法Executors.newCachedThreadPool使用了这个队列。
 4、PriorityBlockingQueue
 一个具有优先级的无限阻塞队列。
+
+execute和submit的区别？
+
+execute适用于不需要关注返回值的场景，只需要将线程丢到线程池中去执行就可以了。
+submit方法适用于需要关注返回值的场景
 
 
 阿里巴巴Java开发手册，明确指出不允许使用Executors静态工厂构建线程池
@@ -194,6 +200,8 @@ FixedThreadPool:定长的线程池，有核心线程，核心线程的即为最�
 （2）尽量避免子查询，大部分子查询都可以连接查询
 （3）用到or的地方可以使用union去代替实现
 （4）用到in的地方可以使用exists去代替
+ 5、在where条件语句中减少运算表达式的使用，减少对字段进行函数操作
+
 
 三.分析sql的索引是否可以用上
 （1) explain查询sql的执行计划,重点关注的几个列就是，type是不是全表扫描
