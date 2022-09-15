@@ -1,0 +1,173 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ */
+
+package com.huawei.it.cbg.ipd.tcmp.cvop.kafka;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.huawei.it.cbg.ipd.tcmp.cvop.service.impl.async.HandleVulnInfoProcessor;
+import com.huawei.it.jalor5.core.request.impl.Application;
+import com.huawei.it.jalor5.core.request.impl.RequestContext;
+import com.huawei.it.jalor5.core.request.impl.RequestContextManager;
+import com.huawei.it.jalor5.security.UserVO;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 功能描述
+ *
+ * @since 2022-04-27
+ */
+@Slf4j
+@Configuration
+public class KafkaConsumerClient extends Thread {
+
+    private static KafkaConsumer consumer;
+
+    @Inject
+    private Environment env;
+
+    @Inject
+    private HandleVulnInfoProcessor handleVulnInfoProcessor;
+
+    private static Environment staticEnv;
+
+    private static HandleVulnInfoProcessor statichandleVulnInfoProcessor;
+
+    public KafkaConsumerClient() {
+        super.setName("VmsVulnConsumerThread");
+    }
+
+    public static void setEnvironment(Environment env) {
+        KafkaConsumerClient.staticEnv = env;
+    }
+
+    public static void setHandleVulnInfoProcessor(HandleVulnInfoProcessor handleVulnInfoProcessor) {
+        KafkaConsumerClient.statichandleVulnInfoProcessor = handleVulnInfoProcessor;
+    }
+
+    @PostConstruct
+    public void init() {
+        // 设置对象
+        setEnvironment(env);
+
+        setHandleVulnInfoProcessor(handleVulnInfoProcessor);
+
+        log.info("start KafkaConsumerClient Thread");
+        // 启动消费线程
+        new Thread(new KafkaConsumerClient()).start();
+    }
+
+    private static KafkaConsumer getInstance() {
+        log.info("========KafkaConsumerClient====init KafkaConsumer============");
+        String maxPollRecords = staticEnv.getProperty("kafka.vmsVuln.max.poll.records");
+        String bootstrapServers = staticEnv.getProperty("kafka.vmsVuln.hosts");
+        String groupId = staticEnv.getProperty("cvop_vms_vuln_kafka_group");
+        String pollIntervalMs = staticEnv.getProperty("kafka.vmsVuln.max.poll.interval.ms");
+        String commitIntervalMs = staticEnv.getProperty("kafka.vmsVuln.auto.commit.interval.ms");
+        Map<String, Object> configMap = new HashMap();
+        configMap.put("message.max.bytes", 10485760);
+        configMap.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        // 消费组id，用户自定义
+        configMap.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        configMap.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringDeserializer");
+        configMap.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringDeserializer");
+        // 是否自动确认offset
+        configMap.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+        configMap.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
+        configMap.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, pollIntervalMs);
+        // 自动确认offset的时间间隔
+        configMap.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, commitIntervalMs);
+        synchronized (KafkaConsumer.class) {
+            if (consumer == null) {
+                consumer = new KafkaConsumer(configMap);
+            }
+        }
+        return consumer;
+    }
+
+    @Override
+    public void run() {
+        // 构造消费者对象
+        KafkaConsumer kafkaConsumer = KafkaConsumerClient.getInstance();
+        log.info("KafkaConsumerClient send heart beat to broker");
+        // 消费者订阅的topic, 可同时订阅多个
+        String topic = staticEnv.getProperty("kafka.vmsVuln.message.topic");
+        String kafkaPollTimeOut = staticEnv.getProperty("kafka.vmsVuln.pollTimeOut");
+        Long pollTimeOut = StringUtils.isNotEmpty(kafkaPollTimeOut) ? Long.valueOf(kafkaPollTimeOut) : 100;
+
+        List<String> topicList = new ArrayList<>(Arrays.asList(topic));
+        kafkaConsumer.subscribe(topicList);
+        RequestContext requestContext = setRequestContext();
+        while (true) {
+            try {
+                // 拉取内容
+                Long start = System.currentTimeMillis();
+                ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(pollTimeOut));
+                if (!records.isEmpty()) {
+                    // 做解析处理，如果消息体为getPackage，不处理也不记录
+                    List<JSONObject> allList = new ArrayList<>();
+                    for (ConsumerRecord<String, String> record : records) {
+                        String value = record.value();
+                        if (null == value) {
+                            continue;
+                        }
+                        JSONArray array = JSONArray.parseArray(value);
+                        List<JSONObject> objectList = array.toJavaList(JSONObject.class);
+                        for (JSONObject jsonItem : objectList) {
+                            // 外部漏洞源,数据类型
+                            JSONArray typeList = jsonItem.getJSONArray("typeList");
+                            if(typeList != null && typeList.size() == 1 && typeList.contains("getPackage")) {
+                                continue;
+                            }
+                            allList.add(jsonItem);
+                        }
+                    }
+                    if(!CollectionUtils.isEmpty(allList)) {
+                        statichandleVulnInfoProcessor.handleVulnInfo(allList , requestContext);
+                    }
+                    long end = System.currentTimeMillis();
+                    log.info("KAFKA Consumer {} records cost {}ms", records.count(), end - start);
+                    // 再手动提交一下
+                    kafkaConsumer.commitSync();
+                }
+            } catch (Exception e) {
+                log.error("KafkaConsumerClient error", e);
+            }
+        }
+    }
+
+    private RequestContext setRequestContext() {
+        RequestContext requestContext = (RequestContext) RequestContext.getCurrent(true);
+        if (requestContext == null) {
+            requestContext = new RequestContext();
+            UserVO user = new UserVO("p_CsdmSystem");
+            user.setUserCN("p_CsdmSystem");
+            requestContext.setUser(user);
+            requestContext.setApplication(Application.getCurrent());
+            log.info("HandleVulnInfoProcessor requestContext set...");
+        }
+        requestContext.setSkipSecurityCheck(true);
+        RequestContextManager.setCurrent(requestContext);
+        return requestContext;
+    }
+}
