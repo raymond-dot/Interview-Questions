@@ -60,3 +60,32 @@ delete()：删除key，用于释放锁
   c. 客户端使用当前时间减去开始获取锁时间（步骤1记录的时间）就得到获取锁使用的时间。当且仅当从大多数（这里是3个节点）的Redis节点都取到锁，并且使用的时间小于锁失效时间时，锁才算获取成功。
   d. 如果取到了锁，key的真正有效时间等于有效时间减去获取锁所使用的时间（步骤3计算的结果）。
   e. 如果因为某些原因，获取锁失败（没有在至少N/2+1个Redis实例取到锁或者取锁时间已经超过了有效时间），客户端应该在所有的Redis实例上进行解锁（即便某些Redis实例根本就没有加锁成功）。
+  /**
+    * 分布式锁在项目中使用案例，对支付流程进行限制，防止订单重复支付
+    */
+	@Override
+    public String rlock(String orderId) {
+        //初始化锁的对象
+        RLock rLock = redissonClient.getLock("lock_" + orderId);
+        try {
+            //尝试加锁, 最多等待5秒
+            boolean lock = rLock.tryLock(5, -1, TimeUnit.SECONDS);
+            if (lock) {
+                log.debug("获取到锁，执行支付流程");
+                //延时15s
+                Thread.sleep(15000);
+                log.debug("支付完成");
+                return "支付完成";
+            } else {
+                return "请稍等，有人正在支付";
+            }
+        } catch (InterruptedException e) {
+            log.error("获取锁异常 e:{}", e.getMessage());
+            return "获取锁异常";
+        } finally {
+            //是锁定状态，并且是当前执行线程的锁，释放锁
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
+        }
+    }
