@@ -102,3 +102,297 @@ jalor-starter-cs （ Jalor 公共服务基座）
 
 jalor-starter-biz 基座依赖于该基座，需要把 jalor-starter-biz 和 jalor-starter-cs 一起在本地搭建使用，
 一般情况 jalor-starter-cs 基座只需搭建一套部署到线上环境中，供多个 jalor-starter-biz 使用。
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ */
+
+package com.huawei.it.hr.hrss.domain.common.enums;
+
+import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * 权限控制表，各个字段的权重
+ *
+ * @since 2025-07-22 10:20
+ */
+@Getter
+public enum AuthPerson {
+
+    SALARY_FLAG("SALARY_FLAG", 1L, Collections.singletonList("IS_ANNUAL_SALARY")),
+    GRADE_FLAG("GRADE_FLAG", 2L, Arrays.asList(
+            "GRADE_NAME", "GRADE_CHANGE_INFO", "GRADE_EFFECTIVE_DATE", "GRADE_CHANGE_INFO1", "GRADE_CHANGE_DATE1",
+            "GRADE_CHANGE_INFO2", "GRADE_CHANGE_DATE2", "GRADE_CHANGE_INFO3", "GRADE_CHANGE_DATE3", "GRADE_CHANGE_INFO4",
+            "GRADE_CHANGE_DATE4", "NOW_JOB_GRADE_START_DATE", "NOW_JOB_GRADE_TOTAL_DAYS", "ORIGINAL_GRADE")),
+    EDUCATION_FLAG("EDUCATION_FLAG", 4L, Arrays.asList("MAJOR", "QUALIFICATION", "DEGREE_NAME", "SCHOOL", "GRADUATE_DATE")),
+    APPRAISAL_FLAG("APPRAISAL_FLAG", 8L, Arrays.asList(
+            "CURRENT_YAP", "CURRENT_HAP", "CURRENT_QAP", "PREVIOUS_YAP", "PREVIOUS_HAP",
+            "PREVIOUS_QAP", "LATER_YAP", "LATER_HAP", "LATER_QAP", "PRE_FOUR_HAP",
+            "PRE_FOUR_QAP", "PRE_FIVTH_HAP", "PRE_FIVTH_QAP", "CURRENT_YAP_ATT", "PREVIOUS_YAP_ATT",
+            "LATER_YAP_ATT", "PRE_FOUR_YAP_ATT", "PRE_FIVTH_YAP_ATT", "PRE_FOUR_YAP", "PRE_FIVTH_YAP",
+            "LATEST_3YEAR_APPRAISAL", "LATEST_3TIMES_APPRAISAL", "PROBATION_RESULT", "LATEST_5YEAR_APPRAISAL", "LATEST_5TIMES_APPRAISAL", "LATEST_TIMES1_APPRAISAL_RANGE")),
+    DISCIPLINE_FLAG("DISCIPLINE_FLAG", 16L, Arrays.asList("VIOLATIONS_CLASSIFICATION", "PROCESS_RESULT", "FREEZING_START_DATE", "FREEZING_END_DATE")),
+    SENSITIVE_FLAG("SENSITIVE_FLAG", 32L, Collections.singletonList("SEX")),
+    POSITION_GRADE_FLAG("POSITION_GRADE_FLAG", 64L, Collections.emptyList()),
+    BIRTHDAY_FLAG("BIRTHDAY_FLAG", 128L, Arrays.asList("DATE_OF_BIRTH", "AGE")),
+    MARITAL_STATUS_FLAG("MARITAL_STATUS_FLAG", 256L, Collections.singletonList("MARITAL_STATUS")),
+    ADDRESS_FLAG("ADDRESS_FLAG", 512L, Collections.emptyList()),
+    CONTACT_PERSON_FLAG("CONTACT_PERSON_FLAG", 1024L, Collections.emptyList()),
+    NATIVE_PLACE_FLAG("NATIVE_PLACE_FLAG", 2048L, Collections.singletonList("TOWN_OF_BIRTH")),
+    NATIONS_FLAG("NATIONS_FLAG", 4096L, Collections.emptyList()),
+    NATIONALITY_FLAG("NATIONALITY_FLAG", 8192L, Collections.singletonList("NATIONALITY")),
+    EMERGENCY_CONTACT_FLAG("EMERGENCY_CONTACT_FLAG", 16384L, Collections.emptyList()),
+    PRE_COMPANY_FLAG("PRE_COMPANY_FLAG", 32768L, Collections.singletonList("FORMER_COMPANY")),
+    CLASS_FLAG("CLASS_FLAG", 65536L, Collections.emptyList()),
+    LABOR_CONTRACT("LABOR_CONTRACT", 131072L, Arrays.asList("CONTRACT_START_DATE", "CONTRACT_END_DATE", "CONTRACT_TYPE", "SIGNCOMPANY_NAME", "CONTRACT_REGION_CODE", "CONTRACT_REGION_NAME"));
+
+    private final String columnName;
+
+    private final Long weight;
+
+    private final List<String> controlFields;
+
+    AuthPerson(String columnName, Long weight, List<String> controlFields) {
+        this.columnName = columnName;
+        this.weight = weight;
+        this.controlFields = controlFields;
+    }
+}
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+ */
+
+package com.huawei.it.hr.hrss.domain.auth.vo;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * 人看人权限VO
+ *
+ * @author y30054976
+ * @since 2025-07-21 14:12
+ */
+@Data
+@Slf4j
+public class PersonAuthVO {
+    private Long hrId;
+    private Long personHrId;
+
+    private int salaryFlag;
+    private int gradeFlag;
+    private int educationFlag;
+    private int appraisalFlag;
+    private int disciplineFlag;
+    private int sensitiveFlag;
+    private int positionGradeFlag;
+    private int birthdayFlag;
+    private int maritalStatusFlag;
+    private int addressFlag;
+    private int contactPersonFlag;
+    private int nativePlaceFlag;
+    private int nationsFlag;
+    private int nationalityFlag;
+    private int emergencyContactFlag;
+    private int preCompanyFlag;
+    private int classFlag;
+    private int laborContract;
+
+    /**
+     * 获取转换后的权限值
+     *
+     * @return 转换后的权限值
+     */
+    public Long getAuthValue() {
+        String valueStr = StringUtils.EMPTY
+                + this.laborContract
+                + this.classFlag
+                + this.preCompanyFlag
+                + this.emergencyContactFlag
+                + this.nationalityFlag
+                + this.nationsFlag
+                + this.nativePlaceFlag
+                + this.contactPersonFlag
+                + this.addressFlag
+                + this.maritalStatusFlag
+                + this.birthdayFlag
+                + this.positionGradeFlag
+                + this.sensitiveFlag
+                + this.disciplineFlag
+                + this.appraisalFlag
+                + this.educationFlag
+                + this.gradeFlag
+                + this.salaryFlag;
+        try {
+            return Long.parseLong(valueStr, 2);
+        } catch (NumberFormatException e) {
+            log.error("PersonAuthVO getAuthValue: personHrId {} failed to parse binary value", personHrId, e);
+            return 0L;
+        }
+    }
+}
+
+
+    /**
+     * 处理权限字段
+     * <p>
+     * 遍历 AuthPerson 枚举值，判断字段类别权限(使用按位与运算)，对于没权限的类别字段值置为 *
+     */
+    private void parsePagedResultResultAuthField(Map<String, Object> sourceMap, int authValue) {
+        Arrays.stream(AuthPerson.values())
+                .filter(ap -> (authValue & ap.getWeight()) == 0)
+                .forEach(ap -> ap.getControlFields().stream()
+                        .filter(sourceMap::containsKey)
+                        .forEach(field -> sourceMap.put(field, NO_AUTH_FIELD_VALUE))
+                );
+    }
+
+
+    
+    /**
+     * 异步组装模板数据
+     */
+    private TemplateCombinedDataDTO getTemplateCombinedData(TalentReviewQueryDTO talentReviewQueryDTO) {
+        TemplateCombinedDataDTO templateCombinedDataDTO = new TemplateCombinedDataDTO();
+
+        List<CompletableFuture> taskList = new ArrayList<>();
+        // 1、分页查询指定模版审视表数据
+        taskList.add(CompletableFuture.runAsync(() -> templateCombinedDataDTO.setTemplateData(getTemplateData(talentReviewQueryDTO)), asyncExecutor).whenComplete((r, e) -> {
+            if (Objects.nonNull(e)) {
+                log.error("---------------talentReview#getTemplateData error", e);
+            }
+        }));
+        // 2、查询模板隐藏人员数量
+        taskList.add(CompletableFuture.runAsync(() -> templateCombinedDataDTO.setEmpHideCount(getEmpHideCount(talentReviewQueryDTO)), asyncExecutor).whenComplete((r, e) -> {
+            if (Objects.nonNull(e)) {
+                log.error("---------------talentReview#queryEmpHideCount error", e);
+            }
+        }));
+        // 3、获取审视列表头分组和列
+        taskList.add(CompletableFuture.runAsync(() -> templateCombinedDataDTO.setHeadGroupAndColumnData(getHeadGroupAndColumn(talentReviewQueryDTO, false)), asyncExecutor).whenComplete((r, e) -> {
+            if (Objects.nonNull(e)) {
+                log.error("---------------talentReview#findHeadGroupAndColumn error", e);
+            }
+        }));
+        // 获取返回结果
+        taskList.stream().forEach(task -> {
+            try {
+                task.get(talentReviewTimeOut, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                log.error("---------------talentReview#getTemplateData query error-->", e);
+            }
+        });
+        CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
+        return templateCombinedDataDTO;
+    }
+
+    /*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ */
+
+package com.huawei.hr.hrpotal.emp.profile.common.configuration;
+
+import com.huawei.it.jalor5.core.request.impl.RequestContext;
+import com.huawei.it.jalor5.core.request.impl.RequestContextManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.TaskDecorator;
+
+public class JalorContextDecorator implements TaskDecorator {
+    private static final Logger log = LoggerFactory.getLogger(JalorContextDecorator.class);
+
+    public JalorContextDecorator() {
+    }
+
+    public Runnable decorate(Runnable runnable) {
+        String mainThreadName = getCurrentThreadName();
+        RequestContext requestContext = (RequestContext) RequestContextManager.getCurrent(true);
+        return () -> {
+            try {
+                RequestContextManager.setCurrent(requestContext);
+                runnable.run();
+            } catch (Exception exception) {
+                log.error("decorate ctx...", exception);
+            } finally {
+                if (!getCurrentThreadName().equals(mainThreadName)) {
+                    RequestContextManager.removeCurrent();
+                }
+            }
+        };
+    }
+
+    public static String getCurrentThreadName() {
+        return Thread.currentThread().getName() + "-" + Thread.currentThread().getId();
+    }
+}
+
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ */
+
+package com.huawei.hr.hrpotal.emp.profile.common.configuration;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+
+@Configuration
+@EnableAsync
+public class ExecutorConfiguration {
+    @Value("${mobile.thread.max.capacity:50}")
+    private int mobileMaxThreadCapacity;
+
+    @Value("${mobile.thread.core.size:10}")
+    private int mobileCorePoolSize;
+
+    @Value("${mobile.thread.queue:200}")
+    private int mobileThreadQueue;
+
+    @Value("${parallel.thread.max.capacity:30}")
+    private int parallelMaxThreadCapacity;
+
+    @Value("${parallel.thread.core.size:10}")
+    private int parallelCorePoolSize;
+
+    @Value("${parallel.thread.queue:200}")
+    private int parallelThreadQueue;
+
+    @Bean("mobileExecutor")
+    public Executor mobileExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(mobileCorePoolSize);
+        executor.setMaxPoolSize(mobileMaxThreadCapacity);
+        executor.setQueueCapacity(mobileThreadQueue);
+        executor.setThreadNamePrefix("mobileExecutor-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.setTaskDecorator(new JalorContextDecorator());
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean("parallelExecutor")
+    public Executor parallelExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(parallelCorePoolSize);
+        executor.setMaxPoolSize(parallelMaxThreadCapacity);
+        executor.setQueueCapacity(parallelThreadQueue);
+        executor.setThreadNamePrefix("parallel-executor-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setTaskDecorator(new JalorContextDecorator());
+        executor.initialize();
+        return executor;
+    }
+}
